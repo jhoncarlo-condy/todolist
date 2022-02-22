@@ -15,75 +15,76 @@ class TodoListController extends Controller
      */
     public function index()
     {
-        return view('todo.list');
+        $todos = TodoList::orderBy('id','desc')->get();
+        return $todos;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
+        $title = $request->title;
+
+        if($title){
+            $todo = new TodoList;
+            $todo->title = $title;
+            $todo->is_completed = 0;
+            $todo->save();
+
+            return response()->json([
+                'status_code'   => 1,
+                'status_messge' => 'Success',
+                'todo'          => $todo
+            ]);
+        }
+
         return response()->json([
-            'id' => $request->title,
-            'is_completed' => Carbon::now()
+            'status_code'    => 0,
+            'status_message' => 'Error'
+        ],404);
+
+    }
+
+
+    public function update(Request $request, $id)
+    {
+        $existing_todo = TodoList::find($id);
+
+        if($existing_todo){
+            $title                = $request->title;
+            $existing_todo->title = $title ? $title : $existing_todo->title;
+            $existing_todo->is_completed = $request->is_completed ? true : false;
+            $existing_todo->save();
+
+            $updated_todo = TodoList::find($id);
+
+            return response()->json([
+                'status_code'    => 1,
+                'status_message' => 'Updated Successfully',
+                'todo'           => $updated_todo
+            ]);
+        }
+
+        return response()->json([
+            'status_code'    => 0,
+            'status_message' => 'Not Found',
+        ], 404);
+    }
+
+
+    public function destroy(TodoList $todoList,$id)
+    {
+        $todo = TodoList::find($id);
+
+        if($todo){
+            $todo->delete();
+            return response()->json([
+                'status_code'    => 1,
+                'status_message' => 'Deleted Successfully'
+            ]);
+        }
+
+        return response()->json([
+            'status_code'    => 0,
+            'status_message' => 'Not Found'
         ]);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\TodoList  $todoList
-     * @return \Illuminate\Http\Response
-     */
-    public function show(TodoList $todoList)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\TodoList  $todoList
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(TodoList $todoList)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\TodoList  $todoList
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, TodoList $todoList)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\TodoList  $todoList
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(TodoList $todoList)
-    {
-        //
     }
 }
